@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Churn Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-container {
+            padding: 40px;
+            flex-grow: 1;
+            overflow-y: auto;
+            width: 100%;
+            height: 100%;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            position: relative;
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .form-group:nth-child(odd) {
+            animation-delay: 0.1s;
+        }
+
+        .form-group:nth-child(even) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        input:hover, select:hover {
+            border-color: #667eea;
+            background: white;
+        }
+
+        .charges-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .total-charges-display {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .prediction-result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: 600;
+            animation: slideIn 0.5s ease-out;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .prediction-result.churn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .prediction-result.no-churn {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .charges-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔮 AI Churn Predictor</h1>
+            <p>Predict customer churn with advanced machine learning</p>
+        </div>
+
+        <div class="form-container">
+            <form id="churnForm" action="/predict" method="POST">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="gender">👤 Gender:</label>
+                        <select name="gender" id="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="SeniorCitizen">👴 Senior Citizen:</label>
+                        <select name="SeniorCitizen" id="SeniorCitizen" required>
+                            <option value="">Select Option</option>
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Partner">💑 Partner:</label>
+                        <select name="Partner" id="Partner" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Dependents">👶 Dependents:</label>
+                        <select name="Dependents" id="Dependents" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tenure">📅 Tenure (months):</label>
+                        <input type="number" name="tenure" id="tenure" min="0" max="100" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="PhoneService">📱 Phone Service:</label>
+                        <select name="PhoneService" id="PhoneService" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="MultipleLines">📞 Multiple Lines:</label>
+                        <select name="MultipleLines" id="MultipleLines" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="No phone service">No phone service</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="InternetService">🌐 Internet Service:</label>
+                        <select name="InternetService" id="InternetService" required>
+                            <option value="">Select Option</option>
+                            <option value="DSL">DSL</option>
+                            <option value="Fiber optic">Fiber optic</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="OnlineSecurity">🔒 Online Security:</label>
+                        <select name="OnlineSecurity" id="OnlineSecurity" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="No internet service">No internet service</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="OnlineBackup">💾 Online Backup:</label>
+                        <select name="OnlineBackup" id="OnlineBackup" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="No internet service">No internet service</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="DeviceProtection">🛡️ Device Protection:</label>
+                        <select name="DeviceProtection" id="DeviceProtection" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="No internet service">No internet service</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="TechSupport">🔧 Tech Support:</label>
+                        <select name="TechSupport" id="TechSupport" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="No internet service">No internet service</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="StreamingTV">📺 Streaming TV:</label>
+                        <select name="StreamingTV" id="StreamingTV" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="No internet service">No internet service</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="StreamingMovies">🎬 Streaming Movies:</label>
+                        <select name="StreamingMovies" id="StreamingMovies" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="No internet service">No internet service</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Contract">📋 Contract:</label>
+                        <select name="Contract" id="Contract" required>
+                            <option value="">Select Contract Type</option>
+                            <option value="Month-to-month">Month-to-month</option>
+                            <option value="One year">One year</option>
+                            <option value="Two year">Two year</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="PaperlessBilling">📄 Paperless Billing:</label>
+                        <select name="PaperlessBilling" id="PaperlessBilling" required>
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="PaymentMethod">💳 Payment Method:</label>
+                        <select name="PaymentMethod" id="PaymentMethod" required>
+                            <option value="">Select Payment Method</option>
+                            <option value="Electronic check">Electronic check</option>
+                            <option value="Mailed check">Mailed check</option>
+                            <option value="Bank transfer (automatic)">Bank transfer (automatic)</option>
+                            <option value="Credit card (automatic)">Credit card (automatic)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="charges-group">
+                    <div class="form-group">
+                        <label for="MonthlyCharges">💰 Monthly Charges ($):</label>
+                        <input type="number" step="0.01" name="MonthlyCharges" id="MonthlyCharges" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="TotalCharges">💸 Total Charges ($):</label>
+                        <input type="number" step="0.01" name="TotalCharges" id="TotalCharges" readonly>
+                    </div>
+
+                    <div class="total-charges-display">
+                        <div id="totalChargesDisplay">Total Charges: $0.00</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span class="icon">🚀</span>
+                    Predict Churn
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing customer data...</p>
+            </div>
+
+            <div id="predictionResult" class="prediction-result" style="display: none;">
+                <!-- Prediction result will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-calculate total charges
+        function calculateTotalCharges() {
+            const tenure = parseFloat(document.getElementById('tenure').value) || 0;
+            const monthlyCharges = parseFloat(document.getElementById('MonthlyCharges').value) || 0;
+            const totalCharges = tenure * monthlyCharges;
+            
+            document.getElementById('TotalCharges').value = totalCharges.toFixed(2);
+            document.getElementById('totalChargesDisplay').textContent = `Total Charges: $${totalCharges.toFixed(2)}`;
+        }
+
+        // Add event listeners for auto-calculation
+        document.getElementById('tenure').addEventListener('input', calculateTotalCharges);
+        document.getElementById('MonthlyCharges').addEventListener('input', calculateTotalCharges);
+
+        // Form submission with loading animation
+        document.getElementById('churnForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('predictionResult').style.display = 'none';
+            
+            // Simulate API call (replace with actual form submission)
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                
+                // Simulate prediction result (replace with actual result)
+                const isChurn = Math.random() > 0.5; // Random for demo
+                const resultDiv = document.getElementById('predictionResult');
+                
+                if (isChurn) {
+                    resultDiv.className = 'prediction-result churn';
+                    resultDiv.innerHTML = '<span class="icon">⚠️</span>High Risk: Customer likely to churn';
+                } else {
+                    resultDiv.className = 'prediction-result no-churn';
+                    resultDiv.innerHTML = '<span class="icon">✅</span>Low Risk: Customer likely to stay';
+                }
+                
+                resultDiv.style.display = 'block';
+            }, 2000);
+        });
+
+        // Add smooth scrolling to result
+        function scrollToResult() {
+            document.getElementById('predictionResult').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+
+        // Form validation enhancement
+        const form = document.getElementById('churnForm');
+        const inputs = form.querySelectorAll('input[required], select[required]');
+
+        inputs.forEach(input => {
+            input.addEventListener('invalid', function() {
+                this.style.borderColor = '#ff6b6b';
+                this.style.backgroundColor = '#ffebee';
+            });
+
+            input.addEventListener('input', function() {
+                if (this.validity.valid) {
+                    this.style.borderColor = '#51cf66';
+                    this.style.backgroundColor = '#f8f9fa';
+                } else {
+                    this.style.borderColor = '#ff6b6b';
+                    this.style.backgroundColor = '#ffebee';
+                }
+            });
+        });
+
+        // Initialize total charges on page load
+        calculateTotalCharges();
+    </script>
+</body>
+</html>
