@@ -60,7 +60,7 @@ churn-prediction-app/
 
 ## 🧠 Machine Learning Model
 
-The system employs a **Support Vector Classifier (SVC)** trained on comprehensive customer data to deliver accurate churn predictions.
+The system employs a Random Forest Classifier trained on processed and balanced customer data to accurately predict customer churn.
 
 ### Input Features:
 - **Demographics**: Gender, Senior Citizen status, Partner, Dependents
