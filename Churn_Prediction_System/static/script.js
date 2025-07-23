@@ -187,7 +187,7 @@ function clearFieldError(field) {
     }
 }
 
-function handleFormSubmission(e) {
+async function handleFormSubmission(e) {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -196,14 +196,86 @@ function handleFormSubmission(e) {
     
     showLoading();
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+        // Create FormData object from the form
         const formData = new FormData(form);
-        const prediction = generatePrediction(formData);
-        showPredictionResult(prediction);
-        hideLoading();
-    }, 2500);
+        const email = formData.get('email'); // Get email from form
+        
+        // Convert FormData to JSON for Flask
+        const jsonData = {};
+        formData.forEach((value, key) => {
+            jsonData[key] = value;
+        });
+        
+        // Make the API call to your Flask backend
+        const response = await fetch('/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            throw new Error(result.error);
+        }
+        
+        // Show the prediction result
+        showPredictionResult({
+            isChurn: result.prediction === "likely to churn",
+            confidence: parseFloat(result.probability.replace('%', '')),
+            recommendations: generateRecommendations(jsonData, result.prediction === "likely to churn")
+        });
+        
+        // Show email confirmation if sent
+        if (result.email_status && result.email_status.success) {
+    showEmailStatus(result.email_status.message || `Email sent successfully to ${email}`, false);
+      } else if (result.email_status) {
+    showEmailStatus(result.email_status.message || `Failed to send email to ${email}`, true);
 }
+
+        
+    } catch (error) {
+        console.error('Prediction error:', error);
+        showEmailStatus(`Error: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Add this new function to display email status
+function showEmailStatus(message, isError = false) {
+    let emailStatusDiv = document.getElementById('emailStatus');
+    
+    // Create it if it doesn't exist
+    if (!emailStatusDiv) {
+        emailStatusDiv = document.createElement('div');
+        emailStatusDiv.id = 'emailStatus';
+        emailStatusDiv.className = 'email-status';
+        predictionResultDiv.parentNode.insertBefore(emailStatusDiv, predictionResultDiv.nextSibling);
+    }
+
+    // Reset class first
+    emailStatusDiv.className = 'email-status';
+
+    // Add appropriate class
+    emailStatusDiv.classList.add(isError ? 'error' : 'success');
+    
+    // Set message
+    emailStatusDiv.textContent = message;
+
+    // Optionally hide after a few seconds
+    setTimeout(() => {
+        emailStatusDiv.classList.remove('success', 'error');
+    }, 5000);
+}
+
 
 function validateForm() {
     const inputs = form.querySelectorAll('input[required], select[required]');
