@@ -543,6 +543,32 @@ body {
     cursor: not-allowed;
 }
 
+.email-status {
+  display: none;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  text-align: center;
+  transition: opacity 0.3s ease;
+}
+
+.email-status.success {
+  display: block;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #81c784;
+}
+
+.email-status.error {
+  display: block;
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+
+
 .total-charges-display {
     background: var(--success-gradient);
     color: white;
