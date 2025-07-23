@@ -319,6 +319,11 @@
                                     <label for="TotalCharges">💸 Total Charges ($)</label>
                                     <input type="number" step="0.01" name="TotalCharges" id="TotalCharges" readonly>
                                 </div>
+                                <div class="form-group full-width">
+                                    <label for="email">📧 Customer Email</label>
+                                    <input type="email" name="email" id="email" placeholder="Enter customer email address" required>
+                                </div>
+
                             </div>
 
                             <div class="total-charges-display">
@@ -347,6 +352,8 @@
                             <h3>Analyzing Customer Data</h3>
                             <p>Our AI is processing the information...</p>
                         </div>
+                        <div id="emailStatus" class="email-status"></div>
+
 
                         <div id="predictionResult" class="prediction-result">
                             <!-- Prediction result will be displayed here -->
